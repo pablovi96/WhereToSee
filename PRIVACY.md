@@ -1,8 +1,8 @@
-# Política de privacidad — ¿Dónde la veo?
+# Política de privacidad — Where to See
 
 Última actualización: 10 de noviembre de 2026
 
-**¿Dónde la veo?** es una app gratuita, sin anuncios y sin cuentas de usuario, que muestra en qué plataformas y países está disponible una película o serie.
+**Where to See** es una app gratuita, sin anuncios y sin cuentas de usuario, que muestra en qué plataformas y países está disponible una película o serie.
 
 ## Qué datos se usan
 

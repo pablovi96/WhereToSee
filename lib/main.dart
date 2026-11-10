@@ -96,7 +96,7 @@ class DondeVerApp extends StatelessWidget {
       brightness: Brightness.dark,
     );
     return MaterialApp(
-      title: '¿Dónde la veo?',
+      title: 'Where to See',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: scheme,
@@ -157,7 +157,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('¿Dónde la veo?'),
+        title: const Text('Where to See'),
         actions: [
           const HomeCountryButton(),
           IconButton(
@@ -733,7 +733,7 @@ class AboutScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('¿Dónde la veo?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+          const Text('Where to See', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           const Text('Busca una película o serie y descubre en qué plataformas de streaming '
               'y en qué países está disponible.'),

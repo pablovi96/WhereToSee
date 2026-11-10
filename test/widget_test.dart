@@ -1,4 +1,4 @@
-import 'package:donde_ver/main.dart';
+import 'package:wheretosee/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

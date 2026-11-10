@@ -1,4 +1,4 @@
-# ¿Dónde la veo?
+# Where to See
 
 App Android (Flutter) que busca una película o serie y te dice en qué plataformas y en qué países está disponible.
 Por ejemplo: «Netflix, en 17 países», con la lista de países.
@@ -27,7 +27,7 @@ La clave de TMDB nunca se guarda en el código: se mete al compilar.
 ## Publicar en Google Play
 
 1. **Cuenta de desarrollador** en play.google.com/console (pago único de 25 $ y verificación de identidad).
-2. **Crear la app** → nombre «¿Dónde la veo?», gratis, app.
+2. **Crear la app** → nombre «Where to See», gratis, app.
 3. **Ficha de Play Store:** icono 512×512 (`icono-play-512.png`), capturas del móvil, descripción corta y larga.
 4. **Política de privacidad:** la URL pública de `PRIVACY.md` de este repositorio.
 5. **Formularios de la app:** seguridad de los datos (no recoge datos), clasificación de contenido, público objetivo (mayores de 13 años), sin anuncios.
