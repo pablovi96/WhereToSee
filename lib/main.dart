@@ -768,6 +768,12 @@ class AboutScreen extends StatelessWidget {
             onPressed: () => openLink(context, 'https://www.justwatch.com'),
             child: const Text('justwatch.com'),
           ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Image.asset('assets/tmdb_logo.png', height: 36, semanticLabel: 'Logotipo de TMDB'),
+          ),
+          const SizedBox(height: 8),
           const Text('Títulos, pósters y logotipos proceden de The Movie Database (TMDB). '
               'Este producto usa la API de TMDB pero no está avalado ni certificado por TMDB.'),
           TextButton(
