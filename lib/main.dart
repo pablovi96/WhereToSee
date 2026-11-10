@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'open_in.dart';
 import 'tmdb.dart';
 
 void main() {
@@ -553,7 +554,9 @@ class _DetailScreenState extends State<DetailScreen> {
     final f = sortKey(_filter);
     if (f.isNotEmpty) groups = groups.where((g) => sortKey(g.provider.name).contains(f)).toList();
 
-    final homeProviders = (data[home]?.byCategory[_category] ?? const <Provider>[]).map((p) => p.name).toList();
+    final homeProviderList = data[home]?.byCategory[_category] ?? const <Provider>[];
+    final homeProviders = homeProviderList.map((p) => p.name).toList();
+    final openable = homeProviderList.where((p) => openTargetFor(p.name, item.title) != null).toList();
     final catLabel = categories.firstWhere((c) => c.$1 == _category).$2.toLowerCase();
 
     final children = <Widget>[
@@ -580,13 +583,33 @@ class _DetailScreenState extends State<DetailScreen> {
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Text.rich(TextSpan(children: [
-            TextSpan(text: '${flagOf(home)}  En ${state.countryName(home)} ($catLabel): '),
-            TextSpan(
-              text: homeProviders.isEmpty ? 'no disponible' : homeProviders.join(', '),
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ])),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(TextSpan(children: [
+                TextSpan(text: '${flagOf(home)}  En ${state.countryName(home)} ($catLabel): '),
+                TextSpan(
+                  text: homeProviders.isEmpty ? 'no disponible' : homeProviders.join(', '),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ])),
+              if (openable.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final p in openable)
+                      FilledButton.tonalIcon(
+                        onPressed: () => openInProvider(context, p.name, item.title),
+                        icon: const Icon(Icons.play_arrow),
+                        label: Text('Abrir en ${p.name}'),
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ),
       ),
       Padding(
