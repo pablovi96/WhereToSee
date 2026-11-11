@@ -32,7 +32,7 @@ jobs:
           fi
 
       - name: Generar proyecto Android
-        run: flutter create --project-name wheretosee --org com.vismu --platforms android .
+        run: flutter create --project-name wheretosee --org com --platforms android .
 
       - name: Ajustar Android (permisos, nombre, firma)
         run: python3 tool/patch_android.py
