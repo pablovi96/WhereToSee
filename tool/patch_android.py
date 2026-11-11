@@ -47,6 +47,17 @@ if 'android:scheme="https"' not in m:
 manifest.write_text(m, encoding="utf-8")
 print("Manifiesto ajustado")
 
+# ---------------------------------------------------------------- identificador
+APP_ID = "com.WhereToSee"  # registrado así en Play Console; no cambiar nunca
+for gradle_file in (APP / "build.gradle.kts", APP / "build.gradle"):
+    if gradle_file.exists():
+        t = gradle_file.read_text(encoding="utf-8")
+        t, n = re.subn(r'applicationId\s*=\s*"[^"]*"', f'applicationId = "{APP_ID}"', t, count=1)
+        if n != 1:
+            fail(f"no encuentro applicationId en {gradle_file.name}")
+        gradle_file.write_text(t, encoding="utf-8")
+        print(f"applicationId = {APP_ID}")
+
 # ---------------------------------------------------------------- firma
 kts = APP / "build.gradle.kts"
 groovy = APP / "build.gradle"
