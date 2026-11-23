@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'library.dart';
 import 'my_list.dart';
+import 'recommend.dart';
 import 'open_in.dart';
 import 'tmdb.dart';
 
@@ -163,6 +164,13 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         title: const Text('Where to See'),
         actions: [
+          IconButton(
+            tooltip: 'Recomiéndame',
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const RecommendScreen()),
+            ),
+          ),
           IconButton(
             tooltip: 'Mis pelis',
             icon: const Icon(Icons.bookmarks_outlined),

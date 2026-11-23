@@ -174,3 +174,116 @@ class Tmdb {
     };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Recomendador: personas, candidatos y consultas
+// ---------------------------------------------------------------------------
+
+class Person {
+  Person({required this.id, required this.name, required this.department, required this.profilePath});
+  final int id;
+  final String name;
+  final String department; // 'Acting', 'Directing', ...
+  final String? profilePath;
+
+  bool get isDirector => department == 'Directing';
+}
+
+/// Película o serie candidata, con lo necesario para puntuarla.
+class Candidate {
+  Candidate({required this.item, required this.genreIds, required this.vote, required this.votes});
+  final MediaItem item;
+  final List<int> genreIds;
+  final double vote;
+  final int votes;
+
+  factory Candidate.fromJson(Map<String, dynamic> j, String type) => Candidate(
+        item: MediaItem.fromJson({...j, 'media_type': type}),
+        genreIds: ((j['genre_ids'] as List?) ?? const []).whereType<int>().toList(),
+        vote: ((j['vote_average'] ?? 0) as num).toDouble(),
+        votes: ((j['vote_count'] ?? 0) as num).toInt(),
+      );
+}
+
+extension TmdbRecommender on Tmdb {
+  /// id -> nombre del género, para 'movie' o 'tv'.
+  Future<Map<int, String>> genres(String type) async {
+    final data = await _get('/genre/$type/list', {'language': 'es-ES'}) as Map<String, dynamic>;
+    return {
+      for (final g in (data['genres'] as List).cast<Map<String, dynamic>>())
+        (g['id'] as int): ((g['name'] ?? '') as String),
+    };
+  }
+
+  Future<List<MediaItem>> searchTitles(String query, String type) async {
+    final data = await _get('/search/$type', {
+      'query': query,
+      'language': 'es-ES',
+      'include_adult': 'false',
+    }) as Map<String, dynamic>;
+    return (data['results'] as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => MediaItem.fromJson({...r, 'media_type': type}))
+        .toList();
+  }
+
+  Future<List<int>> genresOf(MediaItem m) async {
+    final data = await _get('/${m.mediaType}/${m.id}', {'language': 'es-ES'}) as Map<String, dynamic>;
+    return ((data['genres'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map((g) => g['id'] as int)
+        .toList();
+  }
+
+  Future<List<Person>> searchPeople(String query) async {
+    final data = await _get('/search/person', {
+      'query': query,
+      'language': 'es-ES',
+      'include_adult': 'false',
+    }) as Map<String, dynamic>;
+    return (data['results'] as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => Person(
+              id: r['id'] as int,
+              name: (r['name'] ?? '') as String,
+              department: (r['known_for_department'] ?? '') as String,
+              profilePath: r['profile_path'] as String?,
+            ))
+        .toList();
+  }
+
+  /// Filmografía de [p]: como actor (reparto) o como director (y creador, en series).
+  Future<List<Candidate>> personCredits(Person p, String type, {required bool asDirector}) async {
+    final data = await _get('/person/${p.id}/${type}_credits', {'language': 'es-ES'}) as Map<String, dynamic>;
+    final List<Map<String, dynamic>> raw;
+    if (asDirector) {
+      raw = ((data['crew'] as List?) ?? const []).cast<Map<String, dynamic>>().where((c) {
+        final job = (c['job'] ?? '') as String;
+        final dept = (c['department'] ?? '') as String;
+        return job == 'Director' || job == 'Creator' || (type == 'tv' && dept == 'Directing');
+      }).toList();
+    } else {
+      raw = ((data['cast'] as List?) ?? const []).cast<Map<String, dynamic>>();
+    }
+    final seen = <int>{};
+    final out = <Candidate>[];
+    for (final r in raw) {
+      if (r['adult'] == true) continue;
+      if (!seen.add(r['id'] as int)) continue;
+      out.add(Candidate.fromJson(r, type));
+    }
+    return out;
+  }
+
+  Future<List<Candidate>> discover(String type, Map<String, String> params) async {
+    final data = await _get('/discover/$type', {
+      'language': 'es-ES',
+      'include_adult': 'false',
+      ...params,
+    }) as Map<String, dynamic>;
+    return (data['results'] as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => Candidate.fromJson(r, type))
+        .toList();
+  }
+}
