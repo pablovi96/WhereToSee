@@ -136,6 +136,34 @@ class Tmdb {
     return out;
   }
 
+  /// Plataformas que existen en [region] (películas y series), ordenadas por relevancia.
+  Future<List<Provider>> regionProviders(String region) async {
+    final byId = <int, Provider>{};
+    final priority = <int, int>{};
+    for (final type in const ['movie', 'tv']) {
+      final data = await _get('/watch/providers/$type', {
+        'watch_region': region,
+        'language': 'es-ES',
+      }) as Map<String, dynamic>;
+      for (final r in (data['results'] as List).cast<Map<String, dynamic>>()) {
+        final p = Provider.fromJson(r);
+        byId[p.id] = p;
+        final prios = r['display_priorities'];
+        final prio = (prios is Map && prios[region] is int)
+            ? prios[region] as int
+            : (r['display_priority'] is int ? r['display_priority'] as int : 999);
+        final current = priority[p.id];
+        if (current == null || prio < current) priority[p.id] = prio;
+      }
+    }
+    final list = byId.values.toList()
+      ..sort((a, b) {
+        final c = (priority[a.id] ?? 999).compareTo(priority[b.id] ?? 999);
+        return c != 0 ? c : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    return list;
+  }
+
   /// Código ISO -> nombre del país en español.
   Future<Map<String, String>> regions() async {
     final data = await _get('/watch/providers/regions', {'language': 'es-ES'}) as Map<String, dynamic>;

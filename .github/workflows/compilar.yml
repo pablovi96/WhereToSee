@@ -3,7 +3,7 @@ name: Compilar app
 # Se ejecuta cada vez que subes cambios a main, o a mano desde la pestaña Actions.
 on:
   push:
-    branches: [main]
+    branches: [main, v1.1]
   workflow_dispatch:
 
 jobs:

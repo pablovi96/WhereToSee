@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'library.dart';
+import 'my_list.dart';
 import 'open_in.dart';
 import 'tmdb.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   AppState.instance.init();
+  Library.instance.load();
   runApp(const DondeVerApp());
 }
 
@@ -160,6 +163,13 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         title: const Text('Where to See'),
         actions: [
+          IconButton(
+            tooltip: 'Mis pelis',
+            icon: const Icon(Icons.bookmarks_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const MyListScreen()),
+            ),
+          ),
           const HomeCountryButton(),
           IconButton(
             tooltip: 'Acerca de',
@@ -241,7 +251,33 @@ class ResultCard extends StatelessWidget {
             aspectRatio: 2 / 3,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Poster(path: item.posterPath, width: 185),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Poster(path: item.posterPath, width: 185),
+                  ListenableBuilder(
+                    listenable: Library.instance,
+                    builder: (context, _) {
+                      final lib = Library.instance;
+                      final icon = lib.isWatched(item)
+                          ? Icons.check_circle
+                          : lib.isPending(item)
+                              ? Icons.bookmark
+                              : null;
+                      if (icon == null) return const SizedBox.shrink();
+                      return Align(
+                        alignment: Alignment.topRight,
+                        child: Container(
+                          margin: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle),
+                          child: Icon(icon, size: 20, color: const Color(0xFFF5C518)),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -518,6 +554,43 @@ class _DetailScreenState extends State<DetailScreen> {
                   '${item.year.isEmpty ? '' : '${item.year} · '}${item.isTv ? 'Serie' : 'Película'}',
                   style: TextStyle(color: muted),
                 ),
+                const SizedBox(height: 10),
+                ListenableBuilder(
+                  listenable: Library.instance,
+                  builder: (context, _) {
+                    final lib = Library.instance;
+                    final seen = lib.isWatched(item);
+                    final pending = lib.isPending(item);
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        seen
+                            ? FilledButton.icon(
+                                onPressed: () => lib.toggleWatched(item),
+                                icon: const Icon(Icons.check_circle),
+                                label: const Text('Vista'),
+                              )
+                            : OutlinedButton.icon(
+                                onPressed: () => lib.toggleWatched(item),
+                                icon: const Icon(Icons.check_circle_outline),
+                                label: const Text('Vista'),
+                              ),
+                        pending
+                            ? FilledButton.icon(
+                                onPressed: () => lib.togglePending(item),
+                                icon: const Icon(Icons.bookmark),
+                                label: const Text('Pendiente'),
+                              )
+                            : OutlinedButton.icon(
+                                onPressed: () => lib.togglePending(item),
+                                icon: const Icon(Icons.bookmark_border),
+                                label: const Text('Pendiente'),
+                              ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -556,7 +629,9 @@ class _DetailScreenState extends State<DetailScreen> {
 
     final homeProviderList = data[home]?.byCategory[_category] ?? const <Provider>[];
     final homeProviders = homeProviderList.map((p) => p.name).toList();
-    final openable = homeProviderList.where((p) => openTargetFor(p.name, item.title) != null).toList();
+    final openable = homeProviderList.where((p) => openTargetFor(p.name, item.title) != null).toList()
+      ..sort((a, b) => (Library.instance.hasProvider(a.id) ? 0 : 1)
+          .compareTo(Library.instance.hasProvider(b.id) ? 0 : 1));
     final catLabel = categories.firstWhere((c) => c.$1 == _category).$2.toLowerCase();
 
     final children = <Widget>[

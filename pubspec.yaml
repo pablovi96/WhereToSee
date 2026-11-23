@@ -1,7 +1,7 @@
 name: wheretosee
 description: Busca en qué plataformas y países está disponible una película o serie.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+1
 
 environment:
   sdk: ^3.5.0
