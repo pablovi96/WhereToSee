@@ -293,7 +293,7 @@ class WatchedTab extends StatelessWidget {
         if (items.isEmpty) {
           return MessageView(
             icon: Icons.check_circle_outline,
-            text: tr('Aún no has marcado ninguna como vista.', 'You haven't marked anything as watched yet.'),
+            text: tr('Aún no has marcado ninguna como vista.', 'You haven’t marked anything as watched yet.'),
           );
         }
         return ListView(

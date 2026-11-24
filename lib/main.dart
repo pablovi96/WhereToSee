@@ -221,7 +221,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (results == null) {
       return MessageView(
         icon: Icons.movie_filter_outlined,
-        text: tr('Busca una película o serie y te digo en qué plataformas y países está disponible.', 'Search for a movie or series and I'll tell you on which platforms and in which countries it's available.'),
+        text: tr('Busca una película o serie y te digo en qué plataformas y países está disponible.', 'Search for a movie or series and I’ll tell you on which platforms and in which countries it’s available.'),
       );
     }
     if (results.isEmpty && !_loading) {

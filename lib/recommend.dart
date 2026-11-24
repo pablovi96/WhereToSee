@@ -242,7 +242,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
         if (visible.isEmpty) {
           return MessageView(
             icon: Icons.sentiment_neutral,
-            text: tr('No he encontrado nada que no hayas visto con esos criterios. Prueba a quitar alguno.', 'I couldn't find anything you haven't watched with those criteria. Try removing one.'),
+            text: tr('No he encontrado nada que no hayas visto con esos criterios. Prueba a quitar alguno.', 'I couldn’t find anything you haven’t watched with those criteria. Try removing one.'),
           );
         }
         return FutureBuilder<Map<int, String>>(
