@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
 import 'library.dart';
 import 'main.dart';
 import 'open_in.dart';
@@ -35,18 +36,18 @@ class MyListScreen extends StatelessWidget {
       initialIndex: initialTab,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Mis pelis'),
+          title: Text(tr('Mis pelis', 'My movies')),
           actions: [
             const HomeCountryButton(),
             IconButton(
-              tooltip: 'Mis plataformas',
+              tooltip: tr('Mis plataformas', 'My platforms'),
               icon: const Icon(Icons.tune),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: (_) => const MyPlatformsScreen()),
               ),
             ),
           ],
-          bottom: const TabBar(tabs: [Tab(text: 'Pendientes'), Tab(text: 'Vistas')]),
+          bottom: TabBar(tabs: [Tab(text: tr('Pendientes', 'Watchlist')), Tab(text: tr('Vistas', 'Watched'))]),
         ),
         body: const TabBarView(children: [PendingTab(), WatchedTab()]),
       ),
@@ -109,9 +110,9 @@ class _PendingTabState extends State<PendingTab> {
         _ensureLoaded(items);
 
         if (items.isEmpty) {
-          return const MessageView(
+          return MessageView(
             icon: Icons.bookmark_border,
-            text: 'Aún no tienes pendientes. Busca una película y pulsa «Pendiente».',
+            text: tr('Aún no tienes pendientes. Busca una película y pulsa «Pendiente».', 'Your watchlist is empty. Search for a movie and tap “Watchlist”.'),
           );
         }
 
@@ -140,14 +141,14 @@ class _PendingTabState extends State<PendingTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Marca las plataformas que tienes y verás qué pendientes puedes ver ya.'),
+                        Text(tr('Marca las plataformas que tienes y verás qué pendientes puedes ver ya.', 'Mark the platforms you have to see which titles on your watchlist you can watch now.')),
                         const SizedBox(height: 10),
                         FilledButton.icon(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(builder: (_) => const MyPlatformsScreen()),
                           ),
                           icon: const Icon(Icons.tune),
-                          label: const Text('Elegir mis plataformas'),
+                          label: Text(tr('Elegir mis plataformas', 'Choose my platforms')),
                         ),
                       ],
                     ),
@@ -159,13 +160,15 @@ class _PendingTabState extends State<PendingTab> {
                   children: [
                     Expanded(
                       child: Text(
-                        '${flagOf(home)}  $availableCount de ${items.length} '
-                        '${mine.isEmpty ? 'disponibles en ${AppState.instance.countryName(home)}' : 'en tus plataformas'}',
+                        tr('${flagOf(home)}  $availableCount de ${items.length} '
+                            '${mine.isEmpty ? 'disponibles en ${AppState.instance.countryName(home)}' : 'en tus plataformas'}',
+                            '${flagOf(home)}  $availableCount of ${items.length} '
+                            '${mine.isEmpty ? 'available in ${AppState.instance.countryName(home)}' : 'on your platforms'}'),
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ),
                     FilterChip(
-                      label: const Text('Solo disponibles'),
+                      label: Text(tr('Solo disponibles', 'Available only')),
                       selected: _onlyAvailable,
                       onSelected: (v) => setState(() => _onlyAvailable = v),
                     ),
@@ -212,15 +215,15 @@ class _PendingTile extends StatelessWidget {
     Provider? playOn;
 
     if (failed) {
-      status = Text('No se pudo comprobar. Desliza hacia abajo para reintentar.', style: TextStyle(color: muted));
+      status = Text(tr('No se pudo comprobar. Desliza hacia abajo para reintentar.', 'Could not check. Pull down to retry.'), style: TextStyle(color: muted));
     } else if (a == null) {
-      status = Text('Comprobando…', style: TextStyle(color: muted));
+      status = Text(tr('Comprobando…', 'Checking…'), style: TextStyle(color: muted));
     } else {
       final inc = includedIn(a, home);
       final yours = mine.isEmpty ? inc : inc.where((p) => mine.contains(p.id)).toList();
       if (yours.isNotEmpty) {
         status = Text(
-          '✓ ${mine.isEmpty ? 'En' : 'En tus plataformas:'} ${yours.map((p) => p.name).join(', ')}',
+          '✓ ${mine.isEmpty ? tr('En', 'On') : tr('En tus plataformas:', 'On your platforms:')} ${yours.map((p) => p.name).join(', ')}',
           style: const TextStyle(color: Colors.greenAccent),
         );
         playOn = yours.firstWhere(
@@ -228,10 +231,10 @@ class _PendingTile extends StatelessWidget {
           orElse: () => yours.first,
         );
       } else if (inc.isNotEmpty) {
-        status = Text('No está en las tuyas · Sí en: ${inc.map((p) => p.name).join(', ')}',
+        status = Text(tr('No está en las tuyas · Sí en: ', 'Not on yours · Available on: ') + inc.map((p) => p.name).join(', '),
             style: TextStyle(color: muted));
       } else {
-        status = Text('No disponible en ${AppState.instance.countryName(home)} por ahora',
+        status = Text(tr('No disponible en ${AppState.instance.countryName(home)} por ahora', 'Not available in ${AppState.instance.countryName(home)} for now'),
             style: TextStyle(color: muted));
       }
     }
@@ -257,7 +260,7 @@ class _PendingTile extends StatelessWidget {
         children: [
           if (opener != null)
             IconButton(
-              tooltip: 'Abrir en ${opener.name}',
+              tooltip: tr('Abrir en ${opener.name}', 'Open in ${opener.name}'),
               icon: const Icon(Icons.play_circle_fill),
               color: Colors.greenAccent,
               onPressed: () => openInProvider(context, opener.name, item.title),
@@ -267,9 +270,9 @@ class _PendingTile extends StatelessWidget {
               if (v == 'seen') Library.instance.toggleWatched(item.toMediaItem());
               if (v == 'remove') Library.instance.remove(item);
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'seen', child: Text('Marcar como vista')),
-              PopupMenuItem(value: 'remove', child: Text('Quitar de pendientes')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'seen', child: Text(tr('Marcar como vista', 'Mark as watched'))),
+              PopupMenuItem(value: 'remove', child: Text(tr('Quitar de pendientes', 'Remove from watchlist'))),
             ],
           ),
         ],
@@ -288,9 +291,9 @@ class WatchedTab extends StatelessWidget {
       builder: (context, _) {
         final items = Library.instance.watched;
         if (items.isEmpty) {
-          return const MessageView(
+          return MessageView(
             icon: Icons.check_circle_outline,
-            text: 'Aún no has marcado ninguna como vista.',
+            text: tr('Aún no has marcado ninguna como vista.', 'You haven't marked anything as watched yet.'),
           );
         }
         return ListView(
@@ -298,7 +301,7 @@ class WatchedTab extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Text(
-                '${items.length} ${items.length == 1 ? 'vista' : 'vistas'}',
+                '${items.length} ${items.length == 1 ? tr('vista', 'watched') : tr('vistas', 'watched')}',
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
@@ -316,7 +319,7 @@ class WatchedTab extends StatelessWidget {
                 ),
                 title: Text(it.title),
                 subtitle: Text(
-                  '${it.year.isEmpty ? '' : '${it.year} · '}${it.mediaType == 'tv' ? 'Serie' : 'Película'}',
+                  '${it.year.isEmpty ? '' : '${it.year} · '}${it.mediaType == 'tv' ? tr('Serie', 'Series') : tr('Película', 'Movie')}',
                 ),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(builder: (_) => DetailScreen(item: it.toMediaItem())),
@@ -326,9 +329,9 @@ class WatchedTab extends StatelessWidget {
                     if (v == 'pending') Library.instance.togglePending(it.toMediaItem());
                     if (v == 'remove') Library.instance.remove(it);
                   },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'pending', child: Text('Pasar a pendientes')),
-                    PopupMenuItem(value: 'remove', child: Text('Quitar de vistas')),
+                  itemBuilder: (_) => [
+                    PopupMenuItem(value: 'pending', child: Text(tr('Pasar a pendientes', 'Move to watchlist'))),
+                    PopupMenuItem(value: 'remove', child: Text(tr('Quitar de vistas', 'Remove from watched'))),
                   ],
                 ),
               ),
@@ -395,7 +398,7 @@ class _MyPlatformsScreenState extends State<MyPlatformsScreen> {
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis plataformas'),
+        title: const Text(tr('Mis plataformas', 'My platforms')),
         actions: const [HomeCountryButton()],
       ),
       body: ListenableBuilder(
@@ -422,8 +425,8 @@ class _MyPlatformsScreenState extends State<MyPlatformsScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Text(
-                  'Marca las que tienes contratadas en ${flagOf(home)} ${AppState.instance.countryName(home)}. '
-                  'Se guarda solo en este teléfono.',
+                  tr('Marca las que tienes contratadas en ${flagOf(home)} ${AppState.instance.countryName(home)}. ', 'Mark the ones you subscribe to in ${flagOf(home)} ${AppState.instance.countryName(home)}. ') +
+                  tr('Se guarda solo en este teléfono.', 'Stored only on this phone.'),
                   style: TextStyle(color: muted),
                 ),
               ),
@@ -433,7 +436,7 @@ class _MyPlatformsScreenState extends State<MyPlatformsScreen> {
                   onChanged: (v) => setState(() => _filter = v.trim()),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'Buscar plataforma',
+                    hintText: tr('Buscar plataforma', 'Search platform'),
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                   ),

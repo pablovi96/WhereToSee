@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'l10n.dart';
 import 'library.dart';
 import 'my_list.dart';
 import 'recommend.dart';
@@ -29,7 +30,7 @@ class AppState {
   Future<void> init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      home.value = prefs.getString('home') ?? 'ES';
+      home.value = prefs.getString('home') ?? deviceCountry ?? 'ES';
     } catch (_) {}
     try {
       final r = await Tmdb.instance.regions();
@@ -82,7 +83,7 @@ Future<void> openLink(BuildContext context, String url) async {
   }
   if (!ok && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No se pudo abrir el enlace.')),
+      SnackBar(content: Text(tr('No se pudo abrir el enlace.', 'Could not open the link.'))),
     );
   }
 }
@@ -165,14 +166,14 @@ class _SearchScreenState extends State<SearchScreen> {
         title: const Text('Where to See'),
         actions: [
           IconButton(
-            tooltip: 'Recomiéndame',
+            tooltip: tr('Recomiéndame', 'Recommend me'),
             icon: const Icon(Icons.auto_awesome),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const RecommendScreen()),
             ),
           ),
           IconButton(
-            tooltip: 'Mis pelis',
+            tooltip: tr('Mis pelis', 'My movies'),
             icon: const Icon(Icons.bookmarks_outlined),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const MyListScreen()),
@@ -180,7 +181,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const HomeCountryButton(),
           IconButton(
-            tooltip: 'Acerca de',
+            tooltip: tr('Acerca de', 'About'),
             icon: const Icon(Icons.info_outline),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
@@ -197,7 +198,7 @@ class _SearchScreenState extends State<SearchScreen> {
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => _search(),
               decoration: InputDecoration(
-                hintText: 'Película o serie (p. ej. El padrino)',
+                hintText: tr('Película o serie (p. ej. El padrino)', 'Movie or series (e.g. The Godfather)'),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.arrow_forward),
@@ -218,13 +219,13 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_error != null) return MessageView(icon: Icons.error_outline, text: _error!);
     final results = _results;
     if (results == null) {
-      return const MessageView(
+      return MessageView(
         icon: Icons.movie_filter_outlined,
-        text: 'Busca una película o serie y te digo en qué plataformas y países está disponible.',
+        text: tr('Busca una película o serie y te digo en qué plataformas y países está disponible.', 'Search for a movie or series and I'll tell you on which platforms and in which countries it's available.'),
       );
     }
     if (results.isEmpty && !_loading) {
-      return const MessageView(icon: Icons.search_off, text: 'Sin resultados. Prueba con otro título.');
+      return MessageView(icon: Icons.search_off, text: tr('Sin resultados. Prueba con otro título.', 'No results. Try another title.'));
     }
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
@@ -292,7 +293,7 @@ class ResultCard extends StatelessWidget {
           Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
           Text(
-            '${item.year.isEmpty ? '—' : item.year} · ${item.isTv ? 'Serie' : 'Película'}',
+            '${item.year.isEmpty ? '—' : item.year} · ${item.isTv ? tr('Serie', 'Series') : tr('Película', 'Movie')}',
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
@@ -395,14 +396,14 @@ class _CountryPickerState extends State<CountryPicker> {
       ..sort((a, b) => sortKey(a.value).compareTo(sortKey(b.value)));
     return Column(
       children: [
-        const Text('Mi país', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        Text(tr('Mi país', 'My country'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
         Padding(
           padding: const EdgeInsets.all(12),
           child: TextField(
             autofocus: false,
             onChanged: (v) => setState(() => _filter = v.trim()),
             decoration: InputDecoration(
-              hintText: 'Buscar país',
+              hintText: tr('Buscar país', 'Search country'),
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             ),
@@ -513,7 +514,7 @@ class _DetailScreenState extends State<DetailScreen> {
         actions: [
           const HomeCountryButton(),
           IconButton(
-            tooltip: _byCountry ? 'Ver por plataforma' : 'Ver por país',
+            tooltip: _byCountry ? tr('Ver por plataforma', 'View by platform') : tr('Ver por país', 'View by country'),
             icon: Icon(_byCountry ? Icons.subscriptions_outlined : Icons.public),
             onPressed: () => setState(() => _byCountry = !_byCountry),
           ),
@@ -559,7 +560,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 if (item.originalTitle.isNotEmpty && item.originalTitle != item.title)
                   Text(item.originalTitle, style: TextStyle(color: muted)),
                 Text(
-                  '${item.year.isEmpty ? '' : '${item.year} · '}${item.isTv ? 'Serie' : 'Película'}',
+                  '${item.year.isEmpty ? '' : '${item.year} · '}${item.isTv ? tr('Serie', 'Series') : tr('Película', 'Movie')}',
                   style: TextStyle(color: muted),
                 ),
                 const SizedBox(height: 10),
@@ -577,23 +578,23 @@ class _DetailScreenState extends State<DetailScreen> {
                             ? FilledButton.icon(
                                 onPressed: () => lib.toggleWatched(item),
                                 icon: const Icon(Icons.check_circle),
-                                label: const Text('Vista'),
+                                label: Text(tr('Vista', 'Watched')),
                               )
                             : OutlinedButton.icon(
                                 onPressed: () => lib.toggleWatched(item),
                                 icon: const Icon(Icons.check_circle_outline),
-                                label: const Text('Vista'),
+                                label: Text(tr('Vista', 'Watched')),
                               ),
                         pending
                             ? FilledButton.icon(
                                 onPressed: () => lib.togglePending(item),
                                 icon: const Icon(Icons.bookmark),
-                                label: const Text('Pendiente'),
+                                label: Text(tr('Pendiente', 'Watchlist')),
                               )
                             : OutlinedButton.icon(
                                 onPressed: () => lib.togglePending(item),
                                 icon: const Icon(Icons.bookmark_border),
-                                label: const Text('Pendiente'),
+                                label: Text(tr('Pendiente', 'Watchlist')),
                               ),
                       ],
                     );
@@ -610,7 +611,7 @@ class _DetailScreenState extends State<DetailScreen> {
       return ListView(children: [
         header,
         MessageView(icon: Icons.error_outline, text: _error!),
-        Center(child: FilledButton(onPressed: _load, child: const Text('Reintentar'))),
+        Center(child: FilledButton(onPressed: _load, child: Text(tr('Reintentar', 'Retry')))),
       ]);
     }
     final data = _data;
@@ -623,9 +624,9 @@ class _DetailScreenState extends State<DetailScreen> {
     if (data.isEmpty) {
       return ListView(children: [
         header,
-        const MessageView(
+        MessageView(
           icon: Icons.tv_off_outlined,
-          text: 'No hay datos de disponibilidad para este título en ningún país.',
+          text: tr('No hay datos de disponibilidad para este título en ningún país.', 'No availability data for this title in any country.'),
         ),
       ]);
     }
@@ -670,9 +671,9 @@ class _DetailScreenState extends State<DetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text.rich(TextSpan(children: [
-                TextSpan(text: '${flagOf(home)}  En ${state.countryName(home)} ($catLabel): '),
+                TextSpan(text: tr('${flagOf(home)}  En ${state.countryName(home)} ($catLabel): ', '${flagOf(home)}  In ${state.countryName(home)} ($catLabel): ')),
                 TextSpan(
-                  text: homeProviders.isEmpty ? 'no disponible' : homeProviders.join(', '),
+                  text: homeProviders.isEmpty ? tr('no disponible', 'not available') : homeProviders.join(', '),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ])),
@@ -686,7 +687,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       FilledButton.tonalIcon(
                         onPressed: () => openInProvider(context, p.name, item.title),
                         icon: const Icon(Icons.play_arrow),
-                        label: Text('Abrir en ${p.name}'),
+                        label: Text(tr('Abrir en ${p.name}', 'Open in ${p.name}')),
                       ),
                   ],
                 ),
@@ -701,7 +702,7 @@ class _DetailScreenState extends State<DetailScreen> {
           onChanged: (v) => setState(() => _filter = v.trim()),
           decoration: InputDecoration(
             isDense: true,
-            hintText: 'Filtrar plataforma (p. ej. Netflix)',
+            hintText: tr('Filtrar plataforma (p. ej. Netflix)', 'Filter platform (e.g. Netflix)'),
             prefixIcon: const Icon(Icons.filter_list),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
@@ -709,14 +710,14 @@ class _DetailScreenState extends State<DetailScreen> {
       ),
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-        child: Text('Datos de ${data.length} países', style: TextStyle(color: muted, fontSize: 12)),
+        child: Text(tr('Datos de ${data.length} países', 'Data for ${data.length} countries'), style: TextStyle(color: muted, fontSize: 12)),
       ),
     ];
 
     if (groups.isEmpty) {
-      children.add(const Padding(
+      children.add(Padding(
         padding: EdgeInsets.all(24),
-        child: Center(child: Text('Nada que mostrar en esta categoría.')),
+        child: Center(child: Text(tr('Nada que mostrar en esta categoría.', 'Nothing to show in this category.'))),
       ));
     } else if (!_byCountry) {
       for (final g in groups) {
@@ -746,7 +747,7 @@ class _DetailScreenState extends State<DetailScreen> {
       for (final r in rows) {
         children.add(ListTile(
           leading: Text(flagOf(r.key), style: const TextStyle(fontSize: 26)),
-          title: Text(state.countryName(r.key) + (r.key == home ? '  · tu país' : '')),
+          title: Text(state.countryName(r.key) + (r.key == home ? tr('  · tu país', '  · your country') : '')),
           subtitle: Text(r.value.map((p) => p.name).join(', ')),
           onTap: () => openLink(context, data[r.key]?.link ?? ''),
         ));
@@ -756,7 +757,7 @@ class _DetailScreenState extends State<DetailScreen> {
     children.add(Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Text(
-        'Datos de disponibilidad: JustWatch (vía TMDB). Toca un país para abrir la ficha en JustWatch.',
+        tr('Datos de disponibilidad: JustWatch (vía TMDB). Toca un país para abrir la ficha en JustWatch.', 'Availability data: JustWatch (via TMDB). Tap a country to open it on JustWatch.'),
         style: TextStyle(color: muted, fontSize: 12),
       ),
     ));
@@ -801,7 +802,7 @@ class _ProviderTile extends StatelessWidget {
       ),
       title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(
-        '$n ${n == 1 ? 'país' : 'países'}${atHome ? '  ·  ✓ en tu país' : ''}',
+        '$n ${n == 1 ? tr('país', 'country') : tr('países', 'countries')}${atHome ? tr('  ·  ✓ en tu país', '  ·  ✓ in your country') : ''}',
         style: TextStyle(color: atHome ? Colors.greenAccent : theme.colorScheme.onSurfaceVariant),
       ),
       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -835,18 +836,20 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Acerca de')),
+      appBar: AppBar(title: Text(tr('Acerca de', 'About'))),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           const Text('Where to See', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          const Text('Busca una película o serie y descubre en qué plataformas de streaming '
-              'y en qué países está disponible.'),
+          Text(tr('Busca una película o serie y descubre en qué plataformas de streaming '
+              'y en qué países está disponible.',
+              'Search for a movie or series and find out on which streaming platforms '
+              'and in which countries it is available.')),
           const SizedBox(height: 24),
-          const Text('Créditos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(tr('Créditos', 'Credits'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          const Text('Los datos de disponibilidad por plataforma y país proceden de JustWatch.'),
+          Text(tr('Los datos de disponibilidad por plataforma y país proceden de JustWatch.', 'Availability data by platform and country comes from JustWatch.')),
           TextButton(
             onPressed: () => openLink(context, 'https://www.justwatch.com'),
             child: const Text('justwatch.com'),
@@ -854,20 +857,24 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: Image.asset('assets/tmdb_logo.png', height: 36, semanticLabel: 'Logotipo de TMDB'),
+            child: Image.asset('assets/tmdb_logo.png', height: 36, semanticLabel: tr('Logotipo de TMDB', 'TMDB logo')),
           ),
           const SizedBox(height: 8),
-          const Text('Títulos, pósters y logotipos proceden de The Movie Database (TMDB). '
-              'Este producto usa la API de TMDB pero no está avalado ni certificado por TMDB.'),
+          Text(tr('Títulos, pósters y logotipos proceden de The Movie Database (TMDB). '
+              'Este producto usa la API de TMDB pero no está avalado ni certificado por TMDB.',
+              'Titles, posters and logos come from The Movie Database (TMDB). '
+              'This product uses the TMDB API but is not endorsed or certified by TMDB.')),
           TextButton(
             onPressed: () => openLink(context, 'https://www.themoviedb.org'),
             child: const Text('themoviedb.org'),
           ),
           const SizedBox(height: 16),
-          const Text('Privacidad', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(tr('Privacidad', 'Privacy'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          const Text('La app no tiene cuentas ni recoge datos personales. Lo que buscas se envía a TMDB '
-              'para obtener resultados, y tu país elegido se guarda solo en este teléfono.'),
+          Text(tr('La app no tiene cuentas ni recoge datos personales. Lo que buscas se envía a TMDB '
+              'para obtener resultados. Tu país, tus listas y tus plataformas se guardan solo en este teléfono.',
+              'The app has no accounts and collects no personal data. Your searches are sent to TMDB '
+              'to get results. Your country, lists and platforms are stored only on this phone.')),
         ],
       ),
     );

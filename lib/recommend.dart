@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
 import 'library.dart';
 import 'main.dart';
 import 'my_list.dart';
@@ -94,7 +95,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recomiéndame'),
+        title: Text(tr('Recomiéndame', 'Recommend me')),
         actions: const [HomeCountryButton()],
       ),
       body: ListView(
@@ -102,9 +103,9 @@ class _RecommendScreenState extends State<RecommendScreen> {
         children: [
           Center(
             child: SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'movie', label: Text('Película'), icon: Icon(Icons.movie_outlined)),
-                ButtonSegment(value: 'tv', label: Text('Serie'), icon: Icon(Icons.tv)),
+              segments: [
+                ButtonSegment(value: 'movie', label: Text(tr('Película', 'Movie')), icon: Icon(Icons.movie_outlined)),
+                ButtonSegment(value: 'tv', label: Text(tr('Serie', 'Series')), icon: Icon(Icons.tv)),
               ],
               selected: {_type},
               onSelectionChanged: (s) => _setType(s.first),
@@ -113,7 +114,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
           const SizedBox(height: 18),
 
           // --- Géneros
-          _SectionTitle('Géneros', trailing: _genres.isEmpty ? null : 'Uno o varios'),
+          _SectionTitle(tr('Géneros', 'Genres'), trailing: _genres.isEmpty ? null : tr('Uno o varios', 'One or more')),
           FutureBuilder<Map<int, String>>(
             future: _genresFor(_type),
             builder: (context, snap) {
@@ -139,7 +140,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
           const SizedBox(height: 18),
 
           // --- Similar a
-          _SectionTitle(isTv ? 'Serie similar a' : 'Película similar a'),
+          _SectionTitle(isTv ? tr('Serie similar a', 'Series similar to') : tr('Película similar a', 'Movie similar to')),
           if (_similar != null)
             Align(
               alignment: Alignment.centerLeft,
@@ -152,7 +153,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
           else
             SearchPicker<MediaItem>(
               key: ValueKey('similar-$_type'),
-              hint: isTv ? 'Busca una serie' : 'Busca una película',
+              hint: isTv ? tr('Busca una serie', 'Search for a series') : tr('Busca una película', 'Search for a movie'),
               search: (q) => Tmdb.instance.searchTitles(q, _type),
               title: (m) => m.title,
               subtitle: (m) => m.year.isEmpty ? '' : m.year,
@@ -162,7 +163,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
           const SizedBox(height: 18),
 
           // --- Actor o director
-          const _SectionTitle('Actor o director'),
+          _SectionTitle(tr('Actor o director', 'Actor or director')),
           if (_person != null) ...[
             Align(
               alignment: Alignment.centerLeft,
@@ -175,18 +176,18 @@ class _RecommendScreenState extends State<RecommendScreen> {
             const SizedBox(height: 6),
             SegmentedButton<bool>(
               segments: [
-                const ButtonSegment(value: false, label: Text('Como actor/actriz')),
-                ButtonSegment(value: true, label: Text(isTv ? 'Como director/creador' : 'Como director/a')),
+                ButtonSegment(value: false, label: Text(tr('Como actor/actriz', 'As actor'))),
+                ButtonSegment(value: true, label: Text(isTv ? tr('Como director/creador', 'As director/creator') : tr('Como director/a', 'As director'))),
               ],
               selected: {_asDirector},
               onSelectionChanged: (s) => setState(() => _asDirector = s.first),
             ),
           ] else
             SearchPicker<Person>(
-              hint: 'Busca un actor, actriz o director',
+              hint: tr('Busca un actor, actriz o director', 'Search for an actor or director'),
               search: Tmdb.instance.searchPeople,
               title: (p) => p.name,
-              subtitle: (p) => p.isDirector ? 'Director/a' : (p.department == 'Acting' ? 'Actor/actriz' : p.department),
+              subtitle: (p) => p.isDirector ? tr('Director/a', 'Director') : (p.department == 'Acting' ? tr('Actor/actriz', 'Actor') : p.department),
               imagePath: (p) => p.profilePath,
               onPicked: (p) => setState(() {
                 _person = p;
@@ -200,11 +201,11 @@ class _RecommendScreenState extends State<RecommendScreen> {
             contentPadding: EdgeInsets.zero,
             value: _onlyMine && hasProviders,
             onChanged: hasProviders ? (v) => setState(() => _onlyMine = v) : null,
-            title: const Text('Solo en mis plataformas'),
+            title: Text(tr('Solo en mis plataformas', 'Only on my platforms')),
             subtitle: Text(
               hasProviders
-                  ? 'Lo que puedes ver ya en ${AppState.instance.countryName(AppState.instance.home.value)}'
-                  : 'Primero marca tus plataformas en Mis pelis',
+                  ? tr('Lo que puedes ver ya en ${AppState.instance.countryName(AppState.instance.home.value)}', 'What you can watch now in ${AppState.instance.countryName(AppState.instance.home.value)}')
+                  : tr('Primero marca tus plataformas en Mis pelis', 'First mark your platforms in My movies'),
               style: TextStyle(color: muted),
             ),
           ),
@@ -212,12 +213,12 @@ class _RecommendScreenState extends State<RecommendScreen> {
           FilledButton.icon(
             onPressed: _query.isEmpty || _loading ? null : _run,
             icon: const Icon(Icons.auto_awesome),
-            label: Text(isTv ? 'Recomiéndame una serie' : 'Recomiéndame una película'),
+            label: Text(isTv ? tr('Recomiéndame una serie', 'Recommend me a series') : tr('Recomiéndame una película', 'Recommend me a movie')),
           ),
           if (_query.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text('Elige al menos un género, un título o una persona.',
+              child: Text(tr('Elige al menos un género, un título o una persona.', 'Choose at least a genre, a title or a person.'),
                   textAlign: TextAlign.center, style: TextStyle(color: muted, fontSize: 12)),
             ),
           const SizedBox(height: 20),
@@ -239,9 +240,9 @@ class _RecommendScreenState extends State<RecommendScreen> {
             .where((r) => !lib.isWatched(r.candidate.item) && !_dismissed.contains(keyOf(r.candidate.item)))
             .toList();
         if (visible.isEmpty) {
-          return const MessageView(
+          return MessageView(
             icon: Icons.sentiment_neutral,
-            text: 'No he encontrado nada que no hayas visto con esos criterios. Prueba a quitar alguno.',
+            text: tr('No he encontrado nada que no hayas visto con esos criterios. Prueba a quitar alguno.', 'I couldn't find anything you haven't watched with those criteria. Try removing one.'),
           );
         }
         return FutureBuilder<Map<int, String>>(
@@ -263,7 +264,7 @@ class _RecommendScreenState extends State<RecommendScreen> {
                 ),
                 if (visible.length > 1) ...[
                   const SizedBox(height: 16),
-                  Text('Otras opciones', style: Theme.of(context).textTheme.titleMedium),
+                  Text(tr('Otras opciones', 'Other options'), style: Theme.of(context).textTheme.titleMedium),
                   for (final r in visible.skip(1).take(4))
                     ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -345,9 +346,9 @@ class _TopPick extends StatelessWidget {
     final reasons = <String>[
       if (requiredCount > 0)
         rec.matchedGenres.length == requiredCount
-            ? 'Tiene ${requiredCount == 1 ? 'el género' : 'todos los géneros'} que buscas'
-            : 'Comparte ${rec.matchedGenres.map((g) => genreNames[g] ?? '').where((s) => s.isNotEmpty).join(', ')}',
-      if (person != null) 'Con ${person!.name}',
+            ? (requiredCount == 1 ? tr('Tiene el género que buscas', 'Has the genre you want') : tr('Tiene todos los géneros que buscas', 'Has all the genres you want'))
+            : tr('Comparte ', 'Shares ') + '${rec.matchedGenres.map((g) => genreNames[g] ?? '').where((s) => s.isNotEmpty).join(', ')}',
+      if (person != null) tr('Con ${person!.name}', 'With ${person!.name}'),
     ];
 
     return Card(
@@ -356,7 +357,7 @@ class _TopPick extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Te recomiendo', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
+            Text(tr('Te recomiendo', 'I recommend'), style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,7 +376,7 @@ class _TopPick extends StatelessWidget {
                     children: [
                       Text(item.title, style: theme.textTheme.titleLarge),
                       Text(
-                        '${item.year.isEmpty ? '' : '${item.year} · '}★ ${c.vote.toStringAsFixed(1)} (${_compactVotes(c.votes)} votos)',
+                        '${item.year.isEmpty ? '' : '${item.year} · '}★ ${c.vote.toStringAsFixed(1)} (${_compactVotes(c.votes)} ${tr('votos', 'votes')})',
                         style: TextStyle(color: muted),
                       ),
                       if (allGenres.isNotEmpty) Text(allGenres, style: TextStyle(color: muted, fontSize: 12)),
@@ -386,7 +387,7 @@ class _TopPick extends StatelessWidget {
                       if (lib.isPending(item))
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text('🔖 Ya está en tus pendientes', style: TextStyle(color: muted, fontSize: 12)),
+                          child: Text(tr('🔖 Ya está en tus pendientes', '🔖 Already on your watchlist'), style: TextStyle(color: muted, fontSize: 12)),
                         ),
                     ],
                   ),
@@ -403,23 +404,23 @@ class _TopPick extends StatelessWidget {
                     MaterialPageRoute<void>(builder: (_) => DetailScreen(item: item)),
                   ),
                   icon: const Icon(Icons.public),
-                  label: const Text('Dónde verla'),
+                  label: Text(tr('Dónde verla', 'Where to watch')),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => lib.togglePending(item),
                   icon: Icon(lib.isPending(item) ? Icons.bookmark : Icons.bookmark_border),
-                  label: const Text('Pendiente'),
+                  label: Text(tr('Pendiente', 'Watchlist')),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => lib.toggleWatched(item),
                   icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Ya la vi'),
+                  label: Text(tr('Ya la vi', 'Already watched')),
                 ),
                 if (onNext != null)
                   TextButton.icon(
                     onPressed: onNext,
                     icon: const Icon(Icons.skip_next),
-                    label: const Text('Otra'),
+                    label: Text(tr('Otra', 'Another')),
                   ),
               ],
             ),
@@ -511,7 +512,7 @@ class _SearchPickerState<T> extends State<SearchPicker<T>> {
             child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
           ),
         if (results != null && results.isEmpty)
-          const Padding(padding: EdgeInsets.only(top: 6), child: Text('Sin resultados.')),
+          Padding(padding: EdgeInsets.only(top: 6), child: Text(tr('Sin resultados.', 'No results.'))),
         if (results != null)
           for (final r in results)
             ListTile(

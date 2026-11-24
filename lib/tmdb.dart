@@ -2,19 +2,21 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'l10n.dart';
+
 /// Clave de TMDB inyectada al compilar: --dart-define=TMDB_KEY=...
 /// Vale la "API Key" (v3, corta) o el "API Read Access Token" (v4, largo).
 const String tmdbKey = String.fromEnvironment('TMDB_KEY');
 const String imgBase = 'https://image.tmdb.org/t/p/';
 
 /// Categorías de disponibilidad que devuelve TMDB/JustWatch, en orden.
-const List<(String, String)> categories = [
-  ('flatrate', 'Suscripción'),
-  ('free', 'Gratis'),
-  ('ads', 'Con anuncios'),
-  ('rent', 'Alquiler'),
-  ('buy', 'Compra'),
-];
+List<(String, String)> get categories => [
+      ('flatrate', tr('Suscripción', 'Subscription')),
+      ('free', tr('Gratis', 'Free')),
+      ('ads', tr('Con anuncios', 'With ads')),
+      ('rent', tr('Alquiler', 'Rent')),
+      ('buy', tr('Compra', 'Buy')),
+    ];
 
 class TmdbException implements Exception {
   TmdbException(this.message);
@@ -84,7 +86,7 @@ class Tmdb {
 
   Future<dynamic> _get(String path, [Map<String, String> query = const {}]) async {
     if (tmdbKey.isEmpty) {
-      throw TmdbException('Esta versión se compiló sin clave de TMDB.');
+      throw TmdbException(tr('Esta versión se compiló sin clave de TMDB.', 'This build has no TMDB key.'));
     }
     final isToken = tmdbKey.length > 40;
     final params = <String, String>{...query};
@@ -97,18 +99,18 @@ class Tmdb {
     try {
       r = await _client.get(uri, headers: headers).timeout(const Duration(seconds: 15));
     } catch (_) {
-      throw TmdbException('No hay conexión. Revisa tu internet e inténtalo de nuevo.');
+      throw TmdbException(tr('No hay conexión. Revisa tu internet e inténtalo de nuevo.', 'No connection. Check your internet and try again.'));
     }
-    if (r.statusCode == 401) throw TmdbException('La clave de TMDB no es válida.');
-    if (r.statusCode == 429) throw TmdbException('Demasiadas búsquedas seguidas. Espera un momento.');
-    if (r.statusCode != 200) throw TmdbException('Error de TMDB (${r.statusCode}).');
+    if (r.statusCode == 401) throw TmdbException(tr('La clave de TMDB no es válida.', 'The TMDB key is not valid.'));
+    if (r.statusCode == 429) throw TmdbException(tr('Demasiadas búsquedas seguidas. Espera un momento.', 'Too many searches in a row. Please wait a moment.'));
+    if (r.statusCode != 200) throw TmdbException(tr('Error de TMDB (${r.statusCode}).', 'TMDB error (${r.statusCode}).'));
     return jsonDecode(utf8.decode(r.bodyBytes));
   }
 
   Future<List<MediaItem>> search(String query) async {
     final data = await _get('/search/multi', {
       'query': query,
-      'language': 'es-ES',
+      'language': tmdbLanguage,
       'include_adult': 'false',
     }) as Map<String, dynamic>;
     final results = (data['results'] as List).cast<Map<String, dynamic>>();
@@ -143,7 +145,7 @@ class Tmdb {
     for (final type in const ['movie', 'tv']) {
       final data = await _get('/watch/providers/$type', {
         'watch_region': region,
-        'language': 'es-ES',
+        'language': tmdbLanguage,
       }) as Map<String, dynamic>;
       for (final r in (data['results'] as List).cast<Map<String, dynamic>>()) {
         final p = Provider.fromJson(r);
@@ -166,7 +168,7 @@ class Tmdb {
 
   /// Código ISO -> nombre del país en español.
   Future<Map<String, String>> regions() async {
-    final data = await _get('/watch/providers/regions', {'language': 'es-ES'}) as Map<String, dynamic>;
+    final data = await _get('/watch/providers/regions', {'language': tmdbLanguage}) as Map<String, dynamic>;
     final results = (data['results'] as List).cast<Map<String, dynamic>>();
     return {
       for (final r in results)
@@ -208,7 +210,7 @@ class Candidate {
 extension TmdbRecommender on Tmdb {
   /// id -> nombre del género, para 'movie' o 'tv'.
   Future<Map<int, String>> genres(String type) async {
-    final data = await _get('/genre/$type/list', {'language': 'es-ES'}) as Map<String, dynamic>;
+    final data = await _get('/genre/$type/list', {'language': tmdbLanguage}) as Map<String, dynamic>;
     return {
       for (final g in (data['genres'] as List).cast<Map<String, dynamic>>())
         (g['id'] as int): ((g['name'] ?? '') as String),
@@ -218,7 +220,7 @@ extension TmdbRecommender on Tmdb {
   Future<List<MediaItem>> searchTitles(String query, String type) async {
     final data = await _get('/search/$type', {
       'query': query,
-      'language': 'es-ES',
+      'language': tmdbLanguage,
       'include_adult': 'false',
     }) as Map<String, dynamic>;
     return (data['results'] as List)
@@ -228,7 +230,7 @@ extension TmdbRecommender on Tmdb {
   }
 
   Future<List<int>> genresOf(MediaItem m) async {
-    final data = await _get('/${m.mediaType}/${m.id}', {'language': 'es-ES'}) as Map<String, dynamic>;
+    final data = await _get('/${m.mediaType}/${m.id}', {'language': tmdbLanguage}) as Map<String, dynamic>;
     return ((data['genres'] as List?) ?? const [])
         .cast<Map<String, dynamic>>()
         .map((g) => g['id'] as int)
@@ -238,7 +240,7 @@ extension TmdbRecommender on Tmdb {
   Future<List<Person>> searchPeople(String query) async {
     final data = await _get('/search/person', {
       'query': query,
-      'language': 'es-ES',
+      'language': tmdbLanguage,
       'include_adult': 'false',
     }) as Map<String, dynamic>;
     return (data['results'] as List)
@@ -254,7 +256,7 @@ extension TmdbRecommender on Tmdb {
 
   /// Filmografía de [p]: como actor (reparto) o como director (y creador, en series).
   Future<List<Candidate>> personCredits(Person p, String type, {required bool asDirector}) async {
-    final data = await _get('/person/${p.id}/${type}_credits', {'language': 'es-ES'}) as Map<String, dynamic>;
+    final data = await _get('/person/${p.id}/${type}_credits', {'language': tmdbLanguage}) as Map<String, dynamic>;
     final List<Map<String, dynamic>> raw;
     if (asDirector) {
       raw = ((data['crew'] as List?) ?? const []).cast<Map<String, dynamic>>().where((c) {
@@ -277,7 +279,7 @@ extension TmdbRecommender on Tmdb {
 
   Future<List<Candidate>> discover(String type, Map<String, String> params) async {
     final data = await _get('/discover/$type', {
-      'language': 'es-ES',
+      'language': tmdbLanguage,
       'include_adult': 'false',
       ...params,
     }) as Map<String, dynamic>;

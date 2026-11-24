@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'l10n.dart';
+
 /// A dónde llevar al usuario para una plataforma concreta.
 class OpenTarget {
   const OpenTarget(this.uri, {required this.searches});
@@ -48,7 +50,7 @@ Future<void> openInProvider(BuildContext context, String providerName, String ti
   if (!target.searches) {
     await Clipboard.setData(ClipboardData(text: title));
     messenger.showSnackBar(SnackBar(
-      content: Text('Título copiado. Pégalo en el buscador de $providerName.'),
+      content: Text(tr('Título copiado. Pégalo en el buscador de $providerName.', 'Title copied. Paste it into the $providerName search.')),
     ));
   }
 
@@ -62,6 +64,6 @@ Future<void> openInProvider(BuildContext context, String providerName, String ti
     } catch (_) {}
   }
   if (!ok) {
-    messenger.showSnackBar(SnackBar(content: Text('No se pudo abrir $providerName.')));
+    messenger.showSnackBar(SnackBar(content: Text(tr('No se pudo abrir $providerName.', 'Could not open $providerName.'))));
   }
 }
