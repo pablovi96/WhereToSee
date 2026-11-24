@@ -398,7 +398,7 @@ class _MyPlatformsScreenState extends State<MyPlatformsScreen> {
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(tr('Mis plataformas', 'My platforms')),
+        title: Text(tr('Mis plataformas', 'My platforms')),
         actions: const [HomeCountryButton()],
       ),
       body: ListenableBuilder(
